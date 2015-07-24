@@ -1,4 +1,17 @@
 
+
+var support= ('Promise' in window);
+
+if(!support)
+{
+	var script = document.createElement('script');
+	script.type='text/javascript';
+	script.src='https://raw.githubusercontent.com/taylorhakes/promise-polyfill/master/Promise.js';
+	
+	document.body.appendChild(script);
+}
+
+
 var PB = PB || {
 	
 	base_url: "https://api.pushbullet.com/v2",
