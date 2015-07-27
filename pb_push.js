@@ -1,4 +1,17 @@
 
+
+var support= ('Promise' in window);
+
+if(!support)
+{
+	var script = document.createElement('script');
+	script.type='text/javascript';
+	script.src='https://raw.githubusercontent.com/taylorhakes/promise-polyfill/master/Promise.js';
+	
+	document.body.appendChild(script);
+}
+
+
 var PB = PB || {
 	
 	base_url: "https://api.pushbullet.com/v2",
@@ -39,19 +52,34 @@ var PB = PB || {
 
 	api_request: function(url,send_data){
 		url = this.base_url + url;
-		this.tokens.forEach(function(token){
-			$.ajax({
-				url: this.base_url + url,
-				headers:{
-					'Authorization':'Bearer '+token
-				},
-				method: "POST",
-				data: send_data
-			}).done(function(response){
-				return response;
-			}).fail(function(response){
-				return response;
-			});
+
+		var xhrs = this.tokens.map(function(token){
+
+			return new Promise(function(resolve,reject){
+
+				var xhr = new XMLHttpRequest();
+				xhr.setRequestHeader('Authorization', 'Bearer '+token); 
+				//xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded') ** I guess not need , it follows XMLHttpRequest 2**
+				xhr.open('POST',url,!0);
+				xhr.responseType = 'text';
+
+				xhr.onload  = function(){ (this.status === 200) && (resolve(this.response)) };
+				xhr.onerror = function(){ reject(new Error('bad luck !')) };
+
+				xhr.send(JSON.stringify(send_data));
+			})
+
 		});
+
+
+		Promise.all(xhrs).then(function(data){
+
+			console.log(data); //data is array
+		})
+		.catch(function(e){
+
+			console.log('Error !')
+		})
+
 	}
 };
